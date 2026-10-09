@@ -15,27 +15,36 @@ const CaptainProtectWrapper = ({
 
 
 
-    useEffect(() => {
-        if (!token) {
-            navigate('/captain-login')
+useEffect(() => {
+    if (!token) {
+        navigate('/captain-login')
+        return
+    }
+
+    axios.get(`${import.meta.env.VITE_BASE_URL}/captains/profile`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    .then(response => {
+
+        console.log("PROFILE RESPONSE:", response.data);
+
+        if (response.status === 200) {
+            setCaptain(response.data.captain)
+            setIsLoading(false)
         }
 
-        axios.get(`${import.meta.env.VITE_BASE_URL}/captains/profile`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        }).then(response => {
-            if (response.status === 200) {
-                setCaptain(response.data.captain)
-                setIsLoading(false)
-            }
-        })
-            .catch(err => {
+    })
+    .catch(err => {
 
-                localStorage.removeItem('token')
-                navigate('/captain-login')
-            })
-    }, [ token ])
+        console.log("PROFILE ERROR:", err.response?.data);
+
+        localStorage.removeItem('token')
+        navigate('/captain-login')
+    })
+
+}, [token])
 
     
 

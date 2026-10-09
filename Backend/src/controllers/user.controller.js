@@ -32,28 +32,47 @@ module.exports.registerUser= async(req,res,next)=>{
 
 }
 
-module.exports.loginUser= async(req,res,next)=>{
-  const error= validationResult(req) ;
-  if(!error.isEmpty()){
-     return res.status(400).json({error:error.array()})
-  }
-  const {email,password}= req.body ;
+module.exports.loginUser = async (req, res, next) => {
 
-  const user=  await userModel.findOne({email}).select('+password')
+    const error = validationResult(req);
 
-  if(!user){
-    return res.status(401).json({message:'Invalid email or password'}) ;
-  }
+    if (!error.isEmpty()) {
+        return res.status(400).json({ error: error.array() });
+    }
 
-  const isMatched= await user.comparePassword(password) ;
-  if(!isMatched){
-    return res.status(401).json({message:'Invalid email or password'}) ;
-  }
+    const { email, password } = req.body;
 
-  const token= user.generateAuthToken() ;
+    console.log("LOGIN EMAIL:", email);
+    console.log("LOGIN PASSWORD:", password);
 
-  res.cookie('token',token) ;
-  res.status(200).json({token,user})
+    const user = await userModel.findOne({ email }).select('+password');
+
+    console.log("USER FOUND:", user);
+
+    if (!user) {
+        return res.status(401).json({
+            message: 'Invalid email or password'
+        });
+    }
+
+    const isMatched = await user.comparePassword(password);
+
+    console.log("PASSWORD MATCH:", isMatched);
+
+    if (!isMatched) {
+        return res.status(401).json({
+            message: 'Invalid email or password'
+        });
+    }
+
+    const token = user.generateAuthToken();
+
+    res.cookie('token', token);
+
+    res.status(200).json({
+        token,
+        user
+    });
 }
 
 module.exports.getUserProfile = async(req,res,next)=>{

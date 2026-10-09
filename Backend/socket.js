@@ -27,23 +27,28 @@ function initializeSocket(server) {
         });
 
 
-        socket.on('update-location-captain', async (data) => {
-            const { userId, location } = data;
+ socket.on('update-location-captain', async (data) => {
+    const { userId, location } = data;
 
-            if (!location || !location.ltd || !location.lng) {
-                return socket.emit('error', { message: 'Invalid location data' });
-            }
-
-            await captainModel.findByIdAndUpdate(userId, {
-    location: {
-        type: 'Point',
-        coordinates: [
-            location.lng,
-            location.ltd
-        ]
+    if (!location || !location.ltd || !location.lng) {
+        return socket.emit('error', { message: 'Invalid location data' });
     }
+
+    const updatedCaptain = await captainModel.findByIdAndUpdate(
+        userId,
+        {
+            location: {
+                type: 'Point',
+                coordinates: [location.lng, location.ltd]
+            }
+        },
+        { new: true }
+    );
+
+    console.log("CAPTAIN USER ID:", userId);
+    console.log("SAVED CAPTAIN COORDINATES:", updatedCaptain?.location?.coordinates);
 });
-        });
+
 
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);

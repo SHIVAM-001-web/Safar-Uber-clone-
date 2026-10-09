@@ -22,34 +22,47 @@ const CaptainHome = () => {
     const { Socket } = useContext(SocketContext)
     const { captain } = useContext(CaptainDataContext)
 
-    useEffect(() => {
-        Socket.emit('join', {
-            userId: captain._id,
-            userType: 'captain'
-        })
-        const updateLocation = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
+useEffect(() => {
+    if (!captain?._id || !Socket) return;
 
-                    Socket.emit('update-location-captain', {
-                        userId: captain._id,
-                        location: {
-                            ltd: position.coords.latitude,
-                            lng: position.coords.longitude
-                        }
-                    })
-                })
+    Socket.emit('join', {
+        userId: captain._id,
+        userType: 'captain'
+    });
+
+    const updateLocation = () => {
+        if (!navigator.geolocation) return;
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const location = {
+                    ltd: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                console.log('CAPTAIN GPS LOCATION:', location);
+
+                Socket.emit('update-location-captain', {
+                    userId: captain._id,
+                    location
+                });
+            },
+            (error) => {
+                console.error('CAPTAIN GPS ERROR:', error.message);
             }
-        }
+        );
+    };
 
-        const locationInterval = setInterval(updateLocation, 10000)
-        updateLocation()
+    updateLocation();
 
-         return () => clearInterval(locationInterval)
-    }, [])
+    const locationInterval = setInterval(updateLocation, 10000);
+
+    return () => clearInterval(locationInterval);
+}, [Socket, captain?._id]);
 
   useEffect(() => {
     const handleNewRide = (data) => {
+        console.log("🚗 NEW RIDE RECEIVED:", data)
         setRide(data)
         setRidePopupPanel(true)
     }

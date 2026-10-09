@@ -148,7 +148,6 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
             }
         );
 
-
         return response.data
             .map(place => place.display_name)
             .filter(value => value);
